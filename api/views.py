@@ -5,6 +5,7 @@ from rest_framework import viewsets
 from rest_framework.response import Response
 from rest_framework.decorators import action
 from django.db.models import F 
+from rest_framework.parsers import JSONParser
 
 # Create your views here.
 
@@ -48,11 +49,12 @@ class PostsViewSet(viewsets.ModelViewSet):
         posts.save()
         return Response({'status': 'downvoteset'})
 
-    @action(detail=True, methods=['post'])
-    def add_post(self, request):
-        add_post = Posts.objects.create(
-                text=request.data.text, 
-                boast=request.data.boast
-            )
-        return Response(add_post)
+    
+    def create(self, request):
+        post_data = JSONParser().parse(request)
+        post_serializer = PostsSerializer(data=post_data['data'])
+        if post_serializer.is_valid():
+            post_serializer.save()
+            return Response({'status': 'Success'})
+        return Response({'status': 'Failure'})
 
